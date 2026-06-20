@@ -76,3 +76,114 @@ fig.tight_layout()
 fig.savefig(os.path.join(FIGDIR, "Figure_5.png"), dpi=300, bbox_inches="tight")
 plt.close(fig)
 print("WROTE", os.path.join(FIGDIR, "Figure_5.png"))
+
+# =====================================================================
+# Figure 1 — command-order level histogram (Peace, 265 levels)
+# Object count per topological level from the engine's openmp_waves.out.
+# =====================================================================
+import numpy as np
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+lev_counts = [67616,2055,1228,811,597,468,373,301,243,210,182,154,134,106,97,84,74,65,59,56,53,45,41,40,37,37,35,30,29,29,29,27,24,23,23,22,19,17,16,16,14,13,12,11,11,11,8,7,7,7,7,6,6,6,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+levels = list(range(1, len(lev_counts) + 1))
+n_width1 = sum(1 for c in lev_counts if c == 1)
+
+fig, ax = plt.subplots(figsize=(6.0, 3.6))
+ax.bar(levels, lev_counts, width=1.0, color="#2c6fbb", edgecolor="none")
+ax.set_yscale("log")
+ax.set_xlabel("Topological level (command order)")
+ax.set_ylabel("Objects at level (log scale)")
+ax.set_xlim(0, len(levels) + 1)
+ax.annotate(f"level 1: {lev_counts[0]:,} objects\n(the land phase, $\\approx$58k HRUs)",
+            xy=(1, lev_counts[0]), xytext=(35, 18000), fontsize=8.5, color="#c0392b",
+            arrowprops=dict(arrowstyle="->", color="#c0392b", lw=0.9))
+ax.annotate(f"width-1 main-stem tail\n({n_width1} serial levels)",
+            xy=(220, 1), xytext=(120, 12), fontsize=8.5, color="#555",
+            arrowprops=dict(arrowstyle="->", color="#555", lw=0.9))
+fig.tight_layout()
+fig.savefig(os.path.join(FIGDIR, "Figure_1.png"), dpi=300, bbox_inches="tight")
+plt.close(fig)
+print("WROTE", os.path.join(FIGDIR, "Figure_1.png"))
+
+# =====================================================================
+# Figure 2 — routing-DAG level wavefront schematic (conceptual)
+# =====================================================================
+fig, ax = plt.subplots(figsize=(6.6, 3.4))
+ax.axis("off")
+ax.set_xlim(0, 10); ax.set_ylim(0, 6)
+
+def node(x, y, c="#2c6fbb", r=0.16):
+    ax.add_patch(plt.Circle((x, y), r, color=c, zorder=3))
+def edge(x1, y1, x2, y2):
+    ax.add_patch(FancyArrowPatch((x1, y1), (x2, y2), arrowstyle="-|>", mutation_scale=8,
+                                 color="#888", lw=1.0, shrinkA=6, shrinkB=6, zorder=2))
+
+# level bands (shaded), narrowing left->right
+band_x = [0.5, 2.2, 3.9, 5.6, 7.3]
+band_w = [1.4, 1.0, 0.8, 0.7, 0.7]
+band_n = ["level 1\n(land phase,\n~58k HRUs)", "level 2", "level 3", "$\\cdots$", "deep main\nstem (width 1)"]
+for i, (bx, bw) in enumerate(zip(band_x, band_w)):
+    ax.add_patch(FancyBboxPatch((bx - bw/2, 0.6), bw, 4.2, boxstyle="round,pad=0.02",
+                 fc="#eef3fb" if i % 2 == 0 else "#f6f8fc", ec="#cfd8e6", lw=0.8, zorder=1))
+    ax.text(bx, 0.25, band_n[i], ha="center", va="top", fontsize=7.2, color="#444")
+
+# HRUs at level 1 (many), narrowing to 1 at the tail
+ys = [1.4, 2.2, 3.0, 3.8, 4.6]
+for y in ys: node(band_x[0], y, "#27ae60")
+ax.text(band_x[0], 5.05, "independent\nHRUs (parallel)", ha="center", fontsize=7, color="#27ae60")
+for y in [2.0, 3.0, 4.0]: node(band_x[1], y, "#2c6fbb")
+for y in [2.4, 3.6]: node(band_x[2], y, "#2c6fbb")
+node(band_x[3], 3.0, "#2c6fbb")
+node(band_x[4], 3.0, "#c0392b")
+# a few edges showing convergence
+for y in ys: edge(band_x[0], y, band_x[1], min(max(y, 2.0), 4.0))
+for y in [2.0, 3.0, 4.0]: edge(band_x[1], y, band_x[2], 2.4 if y < 3 else 3.6)
+for y in [2.4, 3.6]: edge(band_x[2], y, band_x[3], 3.0)
+edge(band_x[3], 3.0, band_x[4], 3.0)
+
+ax.text(5.0, 5.7, "one OpenMP parallel region per simulated day; "
+        "implicit barrier between levels", ha="center", fontsize=8, style="italic", color="#333")
+ax.annotate("", xy=(8.3, 3.0), xytext=(7.9, 3.0),
+            arrowprops=dict(arrowstyle="-|>", color="#c0392b", lw=1.4))
+ax.text(8.5, 3.0, "outlet", ha="left", va="center", fontsize=7.5, color="#c0392b")
+fig.tight_layout()
+fig.savefig(os.path.join(FIGDIR, "Figure_2.png"), dpi=300, bbox_inches="tight")
+plt.close(fig)
+print("WROTE", os.path.join(FIGDIR, "Figure_2.png"))
+
+# =====================================================================
+# Figure 4 — VTune profile of the final engine at 8 threads
+# (180-day window). Left: CPU-time composition. Right: effective work by routine.
+# =====================================================================
+fig, (axL, axR) = plt.subplots(1, 2, figsize=(7.2, 3.2), gridspec_kw={"width_ratios": [1, 1.25]})
+
+# left: stacked composition
+comp = [("Effective\n(real work)", 929, "#27ae60"),
+        ("Spin\n(barrier idle)", 312, "#f59e0b"),
+        ("Overhead", 25, "#94a3b8")]
+bottom = 0
+for label, sec, col in comp:
+    axL.bar(0, sec, bottom=bottom, width=0.6, color=col, label=label)
+    axL.text(0, bottom + sec/2, f"{sec} s\n({round(100*sec/1266)}%)", ha="center", va="center",
+             fontsize=8, color="#0b1220", fontweight="bold")
+    bottom += sec
+axL.set_xlim(-0.8, 0.8); axL.set_xticks([])
+axL.set_ylabel("CPU-seconds (8 threads)")
+axL.legend(frameon=False, fontsize=7.2, loc="upper right")
+axL.text(-0.75, axL.get_ylim()[1]*0.98, "(a)", fontsize=10, fontweight="bold", va="top")
+
+# right: effective work by routine
+rt = [("sd_channel_control3\n(serial main stem)", 698, "#c0392b"),
+      ("hru_control\n(parallel land phase)", 90, "#27ae60"),
+      ("command_object /\nru_control (mixed)", 41, "#2c6fbb")]
+names = [r[0] for r in rt]; secs = [r[1] for r in rt]; cols = [r[2] for r in rt]
+axR.barh(range(len(rt))[::-1], secs, color=cols, height=0.6)
+for i, s in enumerate(secs):
+    axR.text(s + 12, (len(rt)-1-i), f"{s} s", va="center", fontsize=8)
+axR.set_yticks(range(len(rt))[::-1]); axR.set_yticklabels(names, fontsize=7.2)
+axR.set_xlabel("Effective CPU-seconds"); axR.set_xlim(0, 800)
+axR.text(10, 2.35, "(b)", fontsize=10, fontweight="bold", va="top")
+fig.tight_layout()
+fig.savefig(os.path.join(FIGDIR, "Figure_4.png"), dpi=300, bbox_inches="tight")
+plt.close(fig)
+print("WROTE", os.path.join(FIGDIR, "Figure_4.png"))
