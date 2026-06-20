@@ -157,20 +157,35 @@ print("WROTE", os.path.join(FIGDIR, "Figure_2.png"))
 # =====================================================================
 fig, (axL, axR) = plt.subplots(1, 2, figsize=(7.2, 3.2), gridspec_kw={"width_ratios": [1, 1.25]})
 
-# left: stacked composition
-comp = [("Effective\n(real work)", 929, "#27ae60"),
-        ("Spin\n(barrier idle)", 312, "#f59e0b"),
+# left: stacked composition, each segment labelled to the right (no legend -> no overlap)
+comp = [("Effective (real work)", 929, "#27ae60"),
+        ("Spin (barrier idle)", 312, "#f59e0b"),
         ("Overhead", 25, "#94a3b8")]
+total = sum(s for _, s, _ in comp)
 bottom = 0
+centers = {}
 for label, sec, col in comp:
-    axL.bar(0, sec, bottom=bottom, width=0.6, color=col, label=label)
-    axL.text(0, bottom + sec/2, f"{sec} s\n({round(100*sec/1266)}%)", ha="center", va="center",
-             fontsize=8, color="#0b1220", fontweight="bold")
+    axL.bar(0, sec, bottom=bottom, width=0.5, color=col)
+    centers[label] = bottom + sec / 2
     bottom += sec
-axL.set_xlim(-0.8, 0.8); axL.set_xticks([])
+secmap = {l: s for l, s, _ in comp}
+# bold value inside the two large segments
+for label in ("Effective (real work)", "Spin (barrier idle)"):
+    axL.text(0, centers[label], f"{secmap[label]} s\n({round(100*secmap[label]/total)}%)",
+             ha="center", va="center", fontsize=8, color="#0b1220", fontweight="bold")
+# name labels to the right; tiny overhead slice gets a leader line + inline value
+label_y = {"Effective (real work)": centers["Effective (real work)"],
+           "Spin (barrier idle)": centers["Spin (barrier idle)"],
+           "Overhead": total + 70}
+for label, sec, col in comp:
+    arrow = dict(arrowstyle="-", color="#9aa3af", lw=0.8) if label == "Overhead" else None
+    txt = label if label != "Overhead" else f"Overhead  {sec} s ({round(100*sec/total)}%)"
+    axL.annotate(txt, xy=(0.27, centers[label]), xytext=(0.42, label_y[label]),
+                 va="center", ha="left", fontsize=8, color="#333", arrowprops=arrow)
+axL.set_xlim(-0.45, 2.1); axL.set_xticks([])
+axL.set_ylim(0, total * 1.13)
 axL.set_ylabel("CPU-seconds (8 threads)")
-axL.legend(frameon=False, fontsize=7.2, loc="upper right")
-axL.text(-0.75, axL.get_ylim()[1]*0.98, "(a)", fontsize=10, fontweight="bold", va="top")
+axL.text(-0.4, total * 1.11, "(a)", fontsize=10, fontweight="bold", va="top")
 
 # right: effective work by routine
 rt = [("sd_channel_control3\n(serial main stem)", 698, "#c0392b"),
