@@ -24,7 +24,8 @@ reproduction path.
 | [`peace-river-03100101-model.7z`](peace-river-03100101-model.7z) | The benchmark model (Peace River, HUC-8 03100101; 57,998 HRUs / 8,181 channels). Unpack with `7z x`. |
 | `bench_scaling.sh` | Cross-hardware scaling sweep: stock + final engine, `N = 1…24` threads, best of two |
 | `bench_full.sh` | Full study: serial ladder + text/NetCDF I/O + thread-count byte-identity sweep |
-| `make_figures.py` | Regenerates the paper figures from `results/*.csv` into `figures/` |
+| `make_figures.py` | Regenerates the paper figures into `figures/` |
+| `make_tables.py` | Recomputes the scaling tables (Table 2 / S2 / S3) directly from `results/*.csv` |
 | `results/*.csv` | The measured wall times behind the paper's tables and figures |
 | `aws/` | *Optional.* The scripts we used to provision dedicated cloud instances |
 
@@ -48,6 +49,9 @@ bash bench_scaling.sh            # writes results.csv
 
 # 4. regenerate the figures
 python3 make_figures.py          # writes figures/Figure_*.png
+
+# regenerate the scaling tables straight from the measured CSVs (no embedded numbers)
+python3 make_tables.py            # reproduces Table 2 / S2 / S3
 ```
 
 ## A note on the numbers
