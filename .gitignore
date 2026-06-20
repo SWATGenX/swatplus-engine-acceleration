@@ -1,0 +1,19 @@
+# Built engine binaries (rebuild from BUILD.md commits) and runtime libs
+bins/
+libs/
+*.o
+*.mod
+
+# Unpacked model + run scratch (the model ships as the .7z)
+model/
+run/
+*_day.txt
+*_mon.txt
+*_yr.txt
+*_aa.txt
+*.nc
+
+# Python / OS
+__pycache__/
+*.pyc
+.DS_Store
