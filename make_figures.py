@@ -94,8 +94,8 @@ ax.set_yscale("log")
 ax.set_xlabel("Topological level (command order)")
 ax.set_ylabel("Objects at level (log scale)")
 ax.set_xlim(0, len(levels) + 1)
-ax.annotate(f"level 1: {lev_counts[0]:,} objects\n(the land phase, $\\approx$58k HRUs)",
-            xy=(1, lev_counts[0]), xytext=(35, 18000), fontsize=8.5, color="#c0392b",
+ax.annotate(f"level 1: {lev_counts[0]:,} leaf objects\n(57,998 HRUs + other source nodes)",
+            xy=(1, lev_counts[0]), xytext=(33, 18000), fontsize=8.5, color="#c0392b",
             arrowprops=dict(arrowstyle="->", color="#c0392b", lw=0.9))
 ax.annotate(f"width-1 main-stem tail\n({n_width1} serial levels)",
             xy=(220, 1), xytext=(120, 12), fontsize=8.5, color="#555",
